@@ -1,9 +1,11 @@
 [package]
 name = "oaty"
-version = "0.1.0"
+version = "0.2.0"
+authors = ["Nico Burns"]
 license = "Apache-2.0 OR MIT"
 description = "Micro crate for OpenType containers"
+repository = "https://github.com/nicoburns/oaty"
 edition = "2024"
 
 [dependencies]
-font-types = "0.10"
+font-types = "0.11.3"

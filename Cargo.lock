@@ -4,13 +4,13 @@ version = 4
 
 [[package]]
 name = "font-types"
-version = "0.10.0"
+version = "0.11.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "511e2c18a516c666d27867d2f9821f76e7d591f762e9fc41dd6cc5c90fe54b0b"
+checksum = "5b38ad915f6dadd993ced50848a8291a543bd41ca62bc10740d5e64e2ab4cfd7"
 
 [[package]]
 name = "oaty"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "font-types",
 ]
