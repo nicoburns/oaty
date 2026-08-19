@@ -60,4 +60,3 @@ impl From<Tag> for [u8; 4] {
         tag.0
     }
 }
-
