@@ -61,16 +61,3 @@ impl From<Tag> for [u8; 4] {
     }
 }
 
-#[cfg(feature = "font-types")]
-impl From<font_types::Tag> for Tag {
-    fn from(tag: font_types::Tag) -> Self {
-        Tag(tag.to_be_bytes())
-    }
-}
-
-#[cfg(feature = "font-types")]
-impl From<Tag> for font_types::Tag {
-    fn from(tag: Tag) -> Self {
-        font_types::Tag::new(&tag.0)
-    }
-}

@@ -6,10 +6,3 @@ license = "Apache-2.0 OR MIT"
 description = "Micro crate for OpenType containers"
 repository = "https://github.com/nicoburns/oaty"
 edition = "2024"
-
-[features]
-# Adds `From` conversions between `oaty::Tag` and `font_types::Tag`
-font-types = ["dep:font-types"]
-
-[dependencies]
-font-types = { version = "0.11.3", optional = true }
