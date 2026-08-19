@@ -2,12 +2,12 @@
 
 extern crate alloc;
 
-use font_types::{TTC_HEADER_TAG, Tag};
 use parser::{FromSlice, LazyArray16, LazyArray32, Stream, TryFromBeBytes, round4};
 
-#[doc(inline)]
-pub use font_types as types;
 pub mod parser;
+mod tag;
+
+pub use tag::{TTC_HEADER_TAG, Tag};
 
 pub struct FontFile<'a> {
     data: &'a [u8],
