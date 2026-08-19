@@ -6,9 +6,9 @@
 // This module is adapted from ttf-parser: https://github.com/harfbuzz/ttf-parser/blob/main/src/parser.rs
 // Licensed under MIT and Apache 2.0 licenses. Thanks to Yevhenii Reizner
 
+use crate::tag::Tag;
 use core::convert::TryInto;
 use core::ops::Range;
-use font_types::{F2Dot14, Fixed, Int24, Offset16, Offset24, Offset32, Tag, Uint24};
 
 /// A trait for parsing raw binary data of fixed size.
 ///
@@ -29,12 +29,6 @@ pub trait TryFromBeBytes: Sized {
 pub trait FromSlice<'a>: Sized {
     /// Parses an object from a raw data.
     fn parse(data: &'a [u8]) -> Option<Self>;
-}
-
-/// A common offset methods.
-pub trait Offset {
-    /// Converts the offset to `usize`.
-    fn to_usize(&self) -> usize;
 }
 
 impl TryFromBeBytes for () {
@@ -118,96 +112,12 @@ impl TryFromBeBytes for i64 {
     }
 }
 
-impl TryFromBeBytes for Uint24 {
-    const SIZE: usize = 3;
-
-    #[inline]
-    fn try_parse_from_be_bytes(data: &[u8]) -> Option<Self> {
-        Some(Uint24::from_be_bytes(data.try_into().ok()?))
-    }
-}
-
-impl TryFromBeBytes for Int24 {
-    const SIZE: usize = 3;
-
-    #[inline]
-    fn try_parse_from_be_bytes(data: &[u8]) -> Option<Self> {
-        Some(Int24::from_be_bytes(data.try_into().ok()?))
-    }
-}
-
-impl TryFromBeBytes for F2Dot14 {
-    const SIZE: usize = 2;
-
-    #[inline]
-    fn try_parse_from_be_bytes(data: &[u8]) -> Option<Self> {
-        i16::try_parse_from_be_bytes(data).map(F2Dot14::from_bits)
-    }
-}
-
-impl TryFromBeBytes for Fixed {
-    const SIZE: usize = 4;
-
-    #[inline]
-    fn try_parse_from_be_bytes(data: &[u8]) -> Option<Self> {
-        i32::try_parse_from_be_bytes(data).map(Fixed::from_bits)
-    }
-}
-
 impl TryFromBeBytes for Tag {
     const SIZE: usize = 4;
 
     #[inline]
     fn try_parse_from_be_bytes(data: &[u8]) -> Option<Self> {
         data.try_into().ok().map(Tag::from_be_bytes)
-    }
-}
-
-impl Offset for Offset16 {
-    #[inline]
-    fn to_usize(&self) -> usize {
-        self.to_u32() as usize
-    }
-}
-
-impl TryFromBeBytes for Offset16 {
-    const SIZE: usize = 2;
-
-    #[inline]
-    fn try_parse_from_be_bytes(data: &[u8]) -> Option<Self> {
-        u16::try_parse_from_be_bytes(data).map(Offset16::new)
-    }
-}
-
-impl Offset for Offset24 {
-    #[inline]
-    fn to_usize(&self) -> usize {
-        self.to_u32() as usize
-    }
-}
-
-impl TryFromBeBytes for Offset24 {
-    const SIZE: usize = 3;
-
-    #[inline]
-    fn try_parse_from_be_bytes(data: &[u8]) -> Option<Self> {
-        Uint24::try_parse_from_be_bytes(data).map(Offset24::new)
-    }
-}
-
-impl Offset for Offset32 {
-    #[inline]
-    fn to_usize(&self) -> usize {
-        self.to_u32() as usize
-    }
-}
-
-impl TryFromBeBytes for Offset32 {
-    const SIZE: usize = 4;
-
-    #[inline]
-    fn try_parse_from_be_bytes(data: &[u8]) -> Option<Self> {
-        u32::try_parse_from_be_bytes(data).map(Offset32::new)
     }
 }
 
@@ -545,15 +455,15 @@ impl<'a, T: TryFromBeBytes> Iterator for LazyArrayIter32<'a, T> {
 #[derive(Clone, Copy)]
 pub struct LazyOffsetArray16<'a, T: FromSlice<'a>> {
     data: &'a [u8],
-    // Zero offsets must be ignored, therefore we're using `Option<Offset16>`.
-    offsets: LazyArray16<'a, Offset16>,
+    // Zero offsets must be ignored.
+    offsets: LazyArray16<'a, u16>,
     data_type: core::marker::PhantomData<T>,
 }
 
 impl<'a, T: FromSlice<'a>> LazyOffsetArray16<'a, T> {
     /// Creates a new `LazyOffsetArray16`.
     #[allow(dead_code)]
-    pub fn new(data: &'a [u8], offsets: LazyArray16<'a, Offset16>) -> Self {
+    pub fn new(data: &'a [u8], offsets: LazyArray16<'a, u16>) -> Self {
         Self {
             data,
             offsets,
@@ -577,11 +487,7 @@ impl<'a, T: FromSlice<'a>> LazyOffsetArray16<'a, T> {
     /// Returns a value at `index`.
     #[inline]
     pub fn get(&self, index: u16) -> Option<T> {
-        let offset = self
-            .offsets
-            .get(index)
-            .filter(|offset| !offset.is_null())?
-            .to_usize();
+        let offset = usize::from(self.offsets.get(index).filter(|offset| *offset != 0)?);
         self.data.get(offset..).and_then(T::parse)
     }
 
@@ -772,7 +678,7 @@ impl<'a> Stream<'a> {
     #[allow(dead_code)]
     #[inline]
     pub fn read_at_offset16(&mut self, data: &'a [u8]) -> Option<&'a [u8]> {
-        let offset = self.read::<Offset16>()?.to_usize();
+        let offset = usize::from(self.read::<u16>()?);
         data.get(offset..)
     }
 }

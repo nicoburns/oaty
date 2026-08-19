@@ -10,7 +10,7 @@ checksum = "5b38ad915f6dadd993ced50848a8291a543bd41ca62bc10740d5e64e2ab4cfd7"
 
 [[package]]
 name = "oaty"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "font-types",
 ]
